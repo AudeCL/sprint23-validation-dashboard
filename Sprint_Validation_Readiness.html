@@ -1,0 +1,1833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sprint 23 Validation Readiness Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #fafafa;
+            color: var(--rc-black);
+            padding: 32px 16px;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        /* Royal Canin Brand Colors */
+        :root {
+            --rc-red: #CC0000;
+            --rc-dark-red: #990000;
+            --rc-black: #1a1a1a;
+            --rc-gray: #666666;
+            --rc-light-gray: #f5f5f5;
+            --rc-white: #ffffff;
+            --rc-border: #ececec;
+            --rc-muted: #8a8a8a;
+        }
+        .header {
+            background: var(--rc-white);
+            color: var(--rc-black);
+            padding: 28px 32px;
+            border-radius: 14px;
+            margin-bottom: 24px;
+            border: 1px solid var(--rc-border);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            position: relative;
+        }
+        .header-top {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+        .header-countdown {
+            flex-shrink: 0;
+            background: linear-gradient(135deg, #fbf3f3 0%, #fdecec 100%);
+            padding: 22px 28px;
+            border-radius: 12px;
+            border: 1px solid #f0dede;
+            border-left: 4px solid var(--rc-red);
+            min-width: 300px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .header-countdown .countdown-icon {
+            font-size: 2.4em;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+        .header-countdown .countdown-body {
+            flex: 1;
+        }
+        .header-countdown .countdown-label {
+            font-size: 0.72em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            color: var(--rc-red);
+            font-weight: 700;
+        }
+        .header-countdown .countdown-items {
+            display: flex;
+            gap: 22px;
+        }
+        .header-countdown .countdown-item {
+            padding: 2px 0;
+        }
+        .header-countdown .countdown-item + .countdown-item {
+            border-left: 1px solid #f0dede;
+            padding-left: 22px;
+        }
+        .header-countdown .countdown-item-label {
+            font-size: 0.74em;
+            font-weight: 700;
+            color: var(--rc-gray);
+            margin-bottom: 3px;
+        }
+        .header-countdown .countdown-timer {
+            font-size: 1.55em;
+            font-weight: 700;
+            color: var(--rc-black);
+            line-height: 1.1;
+            font-variant-numeric: tabular-nums;
+        }
+        .header-countdown .countdown-subtitle {
+            font-size: 0.76em;
+            margin-top: 4px;
+            color: var(--rc-muted);
+        }
+        .header-countdown .countdown-item.urgent .countdown-timer {
+            color: var(--rc-red);
+        }
+        .header-countdown.urgent {
+            background: linear-gradient(135deg, #fdecec 0%, #fbdaddff 100%);
+            border-color: #f5c2c2;
+        }
+        .header-main {
+            flex: 1;
+        }
+        .header-main h1 { font-size: 1.7em; font-weight: 700; margin-bottom: 6px; letter-spacing: -0.01em; }
+        .header-main .subtitle { font-size: 0.98em; color: var(--rc-gray); }
+        .header-main .last-updated { margin-top: 12px; font-size: 0.82em; color: var(--rc-muted); }
+
+        .view-switcher {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+        .view-switcher-label {
+            font-size: 0.78em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            color: var(--rc-muted);
+            margin-right: 6px;
+        }
+        .view-button {
+            padding: 7px 16px;
+            background: var(--rc-white);
+            border: 1px solid var(--rc-border);
+            color: var(--rc-gray);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 600;
+            transition: all 0.15s ease;
+        }
+        .view-button:hover {
+            border-color: #d0d0d0;
+            color: var(--rc-black);
+        }
+        .view-button.active {
+            background: var(--rc-red);
+            color: white;
+            border-color: var(--rc-red);
+        }
+        .data-refresh-notice {
+            padding: 10px 14px;
+            background: #fbfbfb;
+            border: 1px solid var(--rc-border);
+            border-left: 3px solid #e0b400;
+            border-radius: 8px;
+            font-size: 0.82em;
+            color: var(--rc-gray);
+        }
+        .data-refresh-notice strong {
+            color: var(--rc-black);
+        }
+
+        @media (max-width: 768px) {
+            .header-top {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .header-countdown {
+                min-width: auto;
+            }
+        }
+
+        .tabs {
+            background: transparent;
+            margin-bottom: 24px;
+            display: flex;
+            gap: 6px;
+            border-bottom: 1px solid var(--rc-border);
+        }
+        .tab-button {
+            padding: 12px 22px;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            font-size: 0.92em;
+            font-weight: 600;
+            color: var(--rc-muted);
+            transition: all 0.15s ease;
+            margin-bottom: -1px;
+        }
+        .tab-button:hover {
+            color: var(--rc-black);
+        }
+        .tab-button.active {
+            color: var(--rc-red);
+            border-bottom-color: var(--rc-red);
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .kpi-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid var(--rc-border);
+            border-top: 3px solid var(--rc-red);
+            transition: border-color 0.15s ease;
+        }
+        .kpi-card:hover {
+            border-color: #dcdcdc;
+        }
+        .kpi-card.excellent { border-top-color: #2e9e57; }
+        .kpi-card.good { border-top-color: var(--rc-red); }
+        .kpi-card.warning { border-top-color: #e0b400; }
+        .kpi-card.danger { border-top-color: var(--rc-dark-red); }
+
+        .kpi-label {
+            font-size: 0.78em;
+            color: var(--rc-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        .kpi-value {
+            font-size: 2.6em;
+            font-weight: 700;
+            color: var(--rc-black);
+            margin-bottom: 8px;
+            line-height: 1;
+        }
+        .kpi-subtitle {
+            font-size: 0.9em;
+            color: var(--rc-gray);
+        }
+
+        .health-tile {
+            cursor: pointer;
+        }
+        .health-tile:hover {
+            border-color: #c9c9c9;
+        }
+        .health-tile.selected {
+            border-color: var(--rc-red);
+            background: #fffafa;
+        }
+        .health-tile .drill-hint {
+            color: var(--rc-red);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .health-drill {
+            margin-top: 24px;
+            border-top: 1px solid var(--rc-border);
+            padding-top: 20px;
+        }
+        .health-drill h3 {
+            font-size: 1em;
+            font-weight: 700;
+            color: var(--rc-black);
+            margin-bottom: 4px;
+        }
+
+        .alert-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .alert-box h3 {
+            color: #856404;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        .alert-box ul {
+            margin-left: 20px;
+            color: #856404;
+        }
+        .alert-box li {
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        .alert-box .expand-toggle {
+            color: #856404;
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: underline;
+            font-style: italic;
+            margin-top: 10px;
+            display: inline-block;
+        }
+        .alert-box .expand-toggle:hover {
+            color: #664d03;
+        }
+        .alert-box .hidden-stories {
+            display: none;
+        }
+        .alert-box .hidden-stories.expanded {
+            display: block;
+        }
+
+        .section {
+            background: white;
+            padding: 26px;
+            border-radius: 12px;
+            border: 1px solid var(--rc-border);
+            margin-bottom: 24px;
+        }
+        .section h2 {
+            font-size: 1.15em;
+            font-weight: 700;
+            color: var(--rc-black);
+            margin-bottom: 16px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--rc-border);
+        }
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 16px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--rc-border);
+        }
+        .legend-toggle {
+            flex-shrink: 0;
+            padding: 7px 14px;
+            background: white;
+            border: 1px solid var(--rc-border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.82em;
+            font-weight: 600;
+            color: var(--rc-gray);
+            transition: all 0.15s ease;
+        }
+        .legend-toggle:hover {
+            border-color: #d0d0d0;
+            color: var(--rc-black);
+        }
+        .legend-toggle .legend-caret {
+            display: inline-block;
+            transition: transform 0.2s ease;
+            font-size: 0.9em;
+        }
+        .legend-toggle[aria-expanded="true"] .legend-caret {
+            transform: rotate(90deg);
+        }
+        .legend-panel {
+            display: none;
+            background: #fbfbfb;
+            border: 1px solid var(--rc-border);
+            border-radius: 10px;
+            padding: 20px 22px;
+            margin-bottom: 20px;
+        }
+        .legend-panel.expanded {
+            display: block;
+        }
+        .legend-panel h4 {
+            font-size: 1em;
+            color: var(--rc-black);
+            margin-bottom: 10px;
+        }
+        .legend-panel p {
+            font-size: 0.88em;
+            color: var(--rc-gray);
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+        .legend-item-row {
+            display: flex;
+            gap: 16px;
+            padding: 10px 0;
+            border-top: 1px solid var(--rc-border);
+        }
+        .legend-item-row .legend-status {
+            flex-shrink: 0;
+            width: 160px;
+            font-weight: 600;
+            color: var(--rc-black);
+            font-size: 0.9em;
+        }
+        .legend-item-row .legend-desc {
+            font-size: 0.85em;
+            color: var(--rc-gray);
+            line-height: 1.5;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+            font-size: 0.88em;
+        }
+        th {
+            background: #f7f7f7;
+            color: var(--rc-gray);
+            padding: 11px 12px;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.82em;
+            letter-spacing: 0.4px;
+            border-bottom: 1px solid var(--rc-border);
+            position: sticky;
+            top: 0;
+        }
+        th.sortable {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            padding-right: 30px;
+        }
+        th.sortable:hover {
+            background: #efefef;
+            color: var(--rc-black);
+        }
+        th.sortable::after {
+            content: '⇅';
+            position: absolute;
+            right: 10px;
+            opacity: 0.5;
+            font-size: 0.9em;
+        }
+        th.sortable.sort-asc::after {
+            content: '▲';
+            opacity: 1;
+        }
+        th.sortable.sort-desc::after {
+            content: '▼';
+            opacity: 1;
+        }
+
+        /* Center the validation status columns (UX, Data, Business, Solution, Overall)
+           — always the last five columns of the heatmap, detailed & change-request tables */
+        #heatmap-table th:nth-last-child(-n+5),
+        #heatmap-table td:nth-last-child(-n+5),
+        #detailed-table th:nth-last-child(-n+5),
+        #detailed-table td:nth-last-child(-n+5),
+        #change-requests-table th:nth-last-child(-n+5),
+        #change-requests-table td:nth-last-child(-n+5) {
+            text-align: center;
+        }
+        #detailed-table th:nth-last-child(-n+5) {
+            width: 12%;
+        }
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        td a[title] {
+            position: relative;
+        }
+        td a[title]:hover {
+            color: var(--rc-red);
+            text-decoration: underline;
+        }
+
+        .story-id {
+            font-weight: 600;
+            color: var(--rc-red);
+        }
+        .story-id a {
+            color: var(--rc-red);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .story-id a:hover {
+            color: var(--rc-dark-red);
+            text-decoration: underline;
+        }
+        .story-title {
+            max-width: 400px;
+        }
+        .story-parent {
+            max-width: 120px;
+            min-width: 80px;
+            font-size: 0.82em;
+            color: var(--rc-gray);
+            white-space: normal;
+        }
+
+        .status-completed {
+            color: #1e7e40;
+            font-weight: 600;
+        }
+        .status-pending {
+            color: #b58a00;
+            font-weight: 600;
+        }
+        .status-na {
+            color: #bbb;
+        }
+        .status-offline {
+            color: #17a2b8;
+            font-weight: 600;
+        }
+
+        .tag-best-effort {
+            display: inline-block;
+            font-size: 0.72em;
+            font-weight: 700;
+            color: #1a4f7a;
+            background: #dceefb;
+            border: 1px solid #7ab8e8;
+            border-radius: 4px;
+            padding: 1px 6px;
+            margin-left: 6px;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        .readiness-ready {
+            background: #eaf6ee;
+            color: #1e7e40;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.82em;
+        }
+        .readiness-not-ready {
+            background: #fdeaea;
+            color: #c22b2b;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.82em;
+        }
+
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        .chart-box {
+            background: white;
+            padding: 18px 22px;
+            border-radius: 12px;
+            border: 1px solid var(--rc-border);
+        }
+        .chart-box h3 {
+            margin-bottom: 14px;
+            font-size: 0.95em;
+            font-weight: 700;
+            color: var(--rc-black);
+        }
+
+        .progress-bar-container {
+            margin-bottom: 20px;
+            overflow: visible;
+        }
+        .progress-bar-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+        .progress-bar {
+            height: 24px;
+            background: #f0f0f0;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+        .progress-fill {
+            height: 100%;
+            background: #2e9e57;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.8em;
+            transition: width 1s ease;
+        }
+        .confetti-canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%;
+            height: 200px;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .progress-bar-container {
+            overflow: visible;
+        }
+        .progress-fill.low {
+            background: var(--rc-red);
+        }
+        .progress-fill.medium {
+            background: #e0b400;
+        }
+        .progress-fill.complete {
+            background: linear-gradient(90deg, #0c5c24 0%, #34d162 40%, #0c5c24 100%);
+            background-size: 200% 100%;
+            animation: progress-shimmer 2.5s ease-in-out infinite;
+        }
+        @keyframes progress-shimmer {
+            0%   { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .donut-chart {
+            text-align: center;
+            padding: 20px;
+        }
+        .donut-svg {
+            max-width: 300px;
+            margin: 0 auto;
+        }
+        .donut-legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        .filters {
+            background: transparent;
+            padding: 0;
+            margin-bottom: 18px;
+        }
+        .filter-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .filter-row input, .filter-row select {
+            padding: 9px 12px;
+            border: 1px solid var(--rc-border);
+            border-radius: 8px;
+            font-size: 0.9em;
+            background: white;
+        }
+        .filter-row input:focus, .filter-row select:focus {
+            outline: none;
+            border-color: var(--rc-red);
+        }
+        .filter-row button {
+            padding: 9px 18px;
+            background: white;
+            color: var(--rc-gray);
+            border: 1px solid var(--rc-border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.15s ease;
+        }
+        .filter-row button:hover {
+            border-color: #d0d0d0;
+            color: var(--rc-black);
+        }
+
+        .footer {
+            background: transparent;
+            color: var(--rc-muted);
+            padding: 24px 4px;
+            margin-top: 32px;
+            border-top: 1px solid var(--rc-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .footer-left {
+            flex: 1;
+        }
+        .footer-left h4 {
+            font-size: 0.95em;
+            margin-bottom: 6px;
+            color: var(--rc-black);
+        }
+        .footer-left p {
+            font-size: 0.82em;
+            color: var(--rc-muted);
+            margin: 3px 0;
+        }
+        .footer-right {
+            text-align: right;
+        }
+        .footer-salesforce {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.95em;
+        }
+        .footer-salesforce-logo {
+            background: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-weight: 700;
+            color: #00a1e0;
+            font-size: 1.1em;
+        }
+        .footer-divider {
+            height: 1px;
+            background: #444;
+            margin: 20px 0;
+        }
+        .footer-bottom {
+            width: 100%;
+            text-align: center;
+            font-size: 0.8em;
+            color: var(--rc-muted);
+            padding-top: 14px;
+            border-top: 1px solid var(--rc-border);
+        }
+
+        @media (max-width: 768px) {
+            .footer {
+                flex-direction: column;
+                text-align: center;
+            }
+            .footer-right {
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .chart-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-top">
+            <div class="header-main">
+                <h1>🎯 Sprint Validation Readiness Dashboard</h1>
+                <p class="subtitle">Release 6 - Sprint 23 | Order Management &amp; eB2B Workstreams</p>
+                <div class="view-switcher">
+                    <span class="view-switcher-label">Workstream view:</span>
+                    <button class="view-button active" id="view-ALL" onclick="switchView('ALL')">OM + eB2B</button>
+                    <button class="view-button" id="view-OM" onclick="switchView('OM')">OM only</button>
+                    <button class="view-button" id="view-eB2B" onclick="switchView('eB2B')">eB2B only</button>
+                </div>
+                <p class="last-updated">Dashboard Generated: <span id="lastUpdated"></span></p>
+            </div>
+            <div class="header-countdown" id="countdown-box">
+                <div class="countdown-icon">⏰</div>
+                <div class="countdown-body">
+                    <div class="countdown-label">VALIDATION DEADLINES</div>
+                    <div class="countdown-items">
+                        <div class="countdown-item" id="countdown-bpo">
+                            <div class="countdown-item-label">BPO + PO Validations</div>
+                            <div class="countdown-timer" id="countdown-timer-bpo">--:--:--</div>
+                            <div class="countdown-subtitle">Oct 6, 6:00 PM CEST</div>
+                        </div>
+                        <div class="countdown-item" id="countdown-ux">
+                            <div class="countdown-item-label">UX Validation</div>
+                            <div class="countdown-timer" id="countdown-timer-ux">--:--:--</div>
+                            <div class="countdown-subtitle">Oct 13, 6:00 PM CEST</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="data-refresh-notice">
+            <strong>ℹ️ Data Refresh:</strong> ADO data last extracted on <strong>September 25, 2026 at 12:44 PM CEST</strong>.
+            Validations completed in ADO after this time may not be reflected yet. Dashboard will be refreshed periodically.
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-button active" onclick="switchTab('overview')">📊 Validation Overview</button>
+        <button class="tab-button" onclick="switchTab('change-requests')">🔁 Change Requests</button>
+        <button class="tab-button" onclick="switchTab('enablers')">🧩 Enablers</button>
+        <button class="tab-button" onclick="switchTab('detailed')">📋 Detailed Tracker</button>
+        <button class="tab-button" onclick="switchTab('health')">🩺 Sprint Health Checks</button>
+    </div>
+
+    <div id="overview" class="tab-content active">
+        <div class="chart-grid" style="grid-template-columns: 2fr 1fr 2fr; margin-bottom: 30px;">
+            <div class="chart-box" style="border-top: none;">
+                <h3>🗂️ Sprint Scope Composition</h3>
+                <div id="scope-composition"></div>
+            </div>
+
+            <div class="chart-box" style="border-top: none;">
+                <h3>📊 Overall Sprint Readiness</h3>
+                <div class="donut-chart" id="readiness-chart"></div>
+            </div>
+
+            <div class="chart-box" style="border-top: none;">
+                <h3>📈 Validation Progress by Type</h3>
+                <div id="validation-progress"></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <h2 style="margin-bottom:0; padding-bottom:0; border-bottom:none;">🔥 Validation Status Heatmap</h2>
+                <button class="legend-toggle" id="legend-toggle" onclick="toggleLegend()" aria-expanded="false">📖 Legend <span class="legend-caret">▸</span></button>
+            </div>
+            <div class="legend-panel" id="legend-panel">
+                <h4>How to read this table</h4>
+                <p>The <strong>Solutioning Status</strong> indicates the maturity of each User Story and whether it is ready for stakeholder review. It is automatically derived from the ADO <em>State</em> and <em>Assigned To</em> fields.</p>
+                <div class="legend-item-row">
+                    <span class="legend-status">⚪ Not Started</span>
+                    <span class="legend-desc">The User Story has not yet been picked up by the Salesforce team. No validation can be requested at this stage.<br><em style="color:#6c757d;">🔍 In ADO: State = <strong>New</strong>, any assignee.</em></span>
+                </div>
+                <div class="legend-item-row">
+                    <span class="legend-status">🟠 In Progress</span>
+                    <span class="legend-desc">The Salesforce team is actively designing the User Story. If validation is required, the item is not yet ready for review. Validation will be requested once the solution reaches a more stable state.<br><em style="color:#6c757d;">🔍 In ADO: State = <strong>In Design</strong>, any assignee.</em></span>
+                </div>
+                <div class="legend-item-row">
+                    <span class="legend-status">🟡 Under Finalisation</span>
+                    <span class="legend-desc">The Salesforce team is finalising the User Story in design review. If validation is required, reviewers may already start providing feedback, understanding that minor updates or clarifications may still be introduced.<br><em style="color:#6c757d;">🔍 In ADO: State = <strong>Design Review</strong> and assigned to a Salesforce team member.</em></span>
+                </div>
+                <div class="legend-item-row">
+                    <span class="legend-status">🟢 Finalised</span>
+                    <span class="legend-desc">The Salesforce team has completed the User Story. If validation is required, the item is ready for stakeholder review and approval.<br><em style="color:#6c757d;">🔍 In ADO: State = <strong>Design Review</strong> unassigned or assigned to a non-Salesforce stakeholder — or any state beyond Design Review (e.g. Ready to build, In Build, Ready for QA…), regardless of assignee.</em></span>
+                </div>
+                <div class="legend-item-row">
+                    <span class="legend-status"><span class="tag-best-effort">💎 Best Effort</span></span>
+                    <span class="legend-desc">This item is <strong>not part of the committed sprint scope</strong>. It will be delivered based on team bandwidth — if capacity allows, it will be completed within the sprint; otherwise it will roll over. Validation may be requested but is not guaranteed within the sprint timeline.</span>
+                </div>
+            </div>
+            <div style="overflow-x: auto;">
+                <table id="heatmap-table"></table>
+            </div>
+        </div>
+    </div>
+
+    <div id="detailed" class="tab-content">
+        <div class="section">
+            <h2>📋 User Story Validation Tracker</h2>
+            <div class="filters">
+                <div class="filter-row">
+                    <input type="text" id="search-input" placeholder="Search by Story ID or Title..." style="flex: 1; min-width: 300px;">
+                    <select id="status-filter">
+                        <option value="">All Stories</option>
+                        <option value="Ready">Ready for Build</option>
+                        <option value="Not Ready">Not Ready</option>
+                    </select>
+                    <button onclick="resetFilters()">Reset Filters</button>
+                </div>
+            </div>
+            <div style="overflow-x: auto;">
+                <table id="detailed-table"></table>
+            </div>
+        </div>
+    </div>
+
+    <div id="enablers" class="tab-content">
+        <div class="section">
+            <h2>🧩 Sprint Enablers</h2>
+            <p style="color: var(--rc-gray); margin-bottom: 10px;">Enabler stories managed as part of this sprint. Enablers are not subject to the standard validation cycle and are tracked separately from the Validation Status Heatmap.</p>
+            <div style="overflow-x: auto;">
+                <table id="enablers-table"></table>
+            </div>
+        </div>
+    </div>
+
+    <div id="change-requests" class="tab-content">
+        <div class="section">
+            <h2>🔁 Change Requests</h2>
+            <p style="color: var(--rc-gray); margin-bottom: 10px;">Items flagged as Change Requests, managed as part of this sprint. Change Requests are tracked separately and excluded from the Validation Status Heatmap.</p>
+            <div style="overflow-x: auto;">
+                <table id="change-requests-table"></table>
+            </div>
+        </div>
+    </div>
+
+    <div id="health" class="tab-content">
+        <div class="section">
+            <h2>🩺 Sprint Health Checks</h2>
+            <p style="color: var(--rc-gray); margin-bottom: 20px;">Backlog hygiene indicators to surface gaps before Sprint Planning and Release readiness reviews. Click a tile to drill into the affected work items.</p>
+
+            <div class="kpi-grid" id="health-kpi-grid"></div>
+            <div id="health-drilldown"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
+
+        // Countdown Timers — two validation deadlines
+        const countdownDeadlines = [
+            { itemId: 'countdown-bpo', timerId: 'countdown-timer-bpo', target: new Date('2026-10-06T18:00:00+02:00') },
+            { itemId: 'countdown-ux',  timerId: 'countdown-timer-ux',  target: new Date('2026-10-13T18:00:00+02:00') }
+        ];
+
+        function updateCountdown() {
+            const now = new Date();
+            let anyUrgent = false;
+
+            countdownDeadlines.forEach(function (d) {
+                const item = document.getElementById(d.itemId);
+                const timer = document.getElementById(d.timerId);
+                const diff = d.target - now;
+
+                if (diff <= 0) {
+                    timer.textContent = 'DEADLINE PASSED';
+                    item.classList.add('urgent');
+                    anyUrgent = true;
+                    return;
+                }
+
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+                if (days > 0) {
+                    timer.textContent = days + 'd ' + hours + 'h ' + minutes + 'm ' + seconds + 's';
+                } else if (hours > 0) {
+                    timer.textContent = hours + 'h ' + minutes + 'm ' + seconds + 's';
+                } else {
+                    timer.textContent = minutes + 'm ' + seconds + 's';
+                }
+
+                // Highlight this deadline if less than 24 hours remain
+                if (days === 0 && hours < 24) {
+                    item.classList.add('urgent');
+                    anyUrgent = true;
+                }
+            });
+
+            document.getElementById('countdown-box').classList.toggle('urgent', anyUrgent);
+        }
+
+        // Update countdowns every second
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
+
+        // Single source of truth: OM&eB2B - Release 5 - Sprint 21.csv
+        // Each row carries state, assignee, tags, ux_ui/data_rel eligibility flags,
+        // validation flags (t/u/d/b = Technical/UX/Data/Business, 1 = completed in ADO),
+        // story points & parent.
+        const rawItems = [
+            {id:"1559370",title:"[eB2B] Reorder Action & Modal Setup",assignee:"Antoine",state:"In Design",tags:["eB2B","UX"],ux_ui:1,data_rel:0,t:0,u:0,d:0,b:0,sp:5,parent:"1381476"},
+            {id:"1559380",title:"[eB2B] Reorder Confirmation & Submission",assignee:"Antoine",state:"In Design",tags:["eB2B","UX"],ux_ui:1,data_rel:0,t:0,u:0,d:0,b:0,sp:5,parent:"1381476"},
+            {id:"1561570",title:"[eB2B] Product Carousels - UI",assignee:"Antoine",state:"In Design",tags:["eB2B","UX"],ux_ui:1,data_rel:0,t:0,u:0,d:0,b:0,sp:13,parent:"1381438"},
+            {id:"1561664",title:"[eB2B] [eB2B] Product Carousels - back",assignee:"Antoine",state:"In Design",tags:["eB2B"],ux_ui:1,data_rel:0,t:0,u:0,d:0,b:0,sp:3,parent:"1381438"},
+            {id:"1561753",title:"[eB2B] Contact Page (incl. Case Form)",assignee:"Julie",state:"In Design",tags:["eB2B","UX"],ux_ui:1,data_rel:0,t:0,u:0,d:0,b:0,sp:2,parent:"1381478"},
+            {id:"1561756",title:"[eB2B] Case Creation",assignee:"Julie",state:"In Design",tags:["eB2B","UX"],ux_ui:1,data_rel:0,t:0,u:0,d:0,b:0,sp:5,parent:"1381478"},
+            {id:"1561759",title:"[eB2B] Case List View",assignee:"Julie",state:"In Design",tags:["eB2B","UX"],ux_ui:1,data_rel:0,t:0,u:0,d:0,b:0,sp:5,parent:"1381478"},
+            {id:"1561763",title:"[eB2B] Case Detail Page & Interaction",assignee:"Julie",state:"In Design",tags:["eB2B","UX"],ux_ui:1,data_rel:0,t:0,u:0,d:0,b:0,sp:2,parent:"1381478"},
+            {id:"1561774",title:"[eB2B] Enable intra-account Case visibility",assignee:"Julie",state:"New",tags:["eB2B","UX"],ux_ui:0,data_rel:0,t:0,u:0,d:0,b:0,sp:2,parent:"1381478"},
+            {id:"1393412",title:"[eB2B] Product recommendation configuration",assignee:"Julie",state:"New",tags:["eB2B","UX"],ux_ui:1,data_rel:0,t:0,u:0,d:0,b:0,sp:0,parent:"1381444"}
+        ];
+
+        // Derive the working maps from the single source
+        const sprintScope = rawItems.map(i => ({id:i.id, title:i.title, parent:i.parent || ""}));
+        const adoData = {};
+        const metaData = {};
+        const tagsData = {};
+        const storyPoints = {};
+        const uxUiData = {};
+        const dataRelData = {};
+        rawItems.forEach(i => {
+            adoData[i.id] = {technical:i.t, ux:i.u, data:i.d, business:i.b};
+            metaData[i.id] = {state:i.state, assignee:i.assignee};
+            tagsData[i.id] = i.tags;
+            storyPoints[i.id] = i.sp;
+            uxUiData[i.id] = i.ux_ui || 0;
+            dataRelData[i.id] = i.data_rel || 0;
+        });
+
+        // Parent ID to Name mapping (falls back to the raw parent ID when unknown)
+        const parentNames = {
+            "970147": "AI-Powered Features",
+            "970201": "Order Cancellation Management",
+            "970114": "Order Processing & Standards",
+            "970206": "Return Management",
+            "970204": "Billing & Invoicing",
+            "970196": "AI-Powered Order Management",
+            "970211": "FEX Permissions & Access Control",
+            "970082": "Account & Customer Management",
+            "970183": "Order Entry",
+            "969175": "Pricing Model Evolution",
+            "1403752": "Dynamic Account Resolution",
+            "970209": "Product Management & Display",
+            "1089831": "Promotions Management",
+            "1016086": "Product Content & Akeneo Integration",
+            "1381402": "Account Experience",
+            "1381366": "Authentication & Access",
+            "1381301": "Ordering",
+            "1381481": "Visit Management",
+            "1381476": "Returns Management",
+            "1381486": "Notifications & Emails",
+            "1381411": "Homepage & Dashboard",
+            "1381392": "User Management",
+            "1381364": "Analytics & Tracking",
+            "1381397": "Data Bridging",
+            "1381401": "Roles & Permissions",
+            "1381489": "Data Standardization",
+            "1381443": "Product Catalog",
+            "1381468": "Checkout",
+            "1469336": "Order Management System",
+            "1381438": "Product Carousels",
+            "1381478": "Case Management",
+            "1381444": "Product Recommendations"
+        };
+
+        // Workstream membership is derived from the title markers [OM] / [eB2B].
+        // An item may carry both markers and belong to both workstreams.
+        const deriveWorkstreams = (title) => {
+            const ws = [];
+            if (/\[OM\]/i.test(title)) ws.push("OM");
+            if (/\[eB2B\]/i.test(title)) ws.push("eB2B");
+            return ws.length ? ws : ["OM"];
+        };
+
+        // Process stories
+        let processedStories = [];
+        let allStoriesForFiltering = [];
+
+        // Salesforce team members — used to distinguish "Being Finalised" vs "Finalised" in Design Review
+        const solutioningOwners = ["Edouard", "Harry", "Antoine", "Eline", "Cristina", "Justine", "Julie", "Noémie", "Noemie", "Aude", "Diane", "Riad", "Lhoucine", "Mohammed-Mahmoud", "Emilie", "Johannes"];
+
+        sprintScope.forEach(story => {
+            const ado = adoData[story.id] || {technical:0,ux:0,data:0,business:0};
+            const meta = metaData[story.id] || {state:"", assignee:""};
+
+            // Solutioning status derived from ADO State + Assignee:
+            //  - State New                                        -> Not Started
+            //  - State In Design                                  -> Being Worked On
+            //  - State Design Review + SF team assignee           -> Being Finalised
+            //  - State Design Review (unassigned / non-SF) or any state beyond -> Finalised
+            let solutioningStatus;
+            if (meta.state === "New") {
+                solutioningStatus = "Not Started";
+            } else if (meta.state === "In Design") {
+                solutioningStatus = "Being Worked On";
+            } else if (meta.state === "Design Review" && solutioningOwners.includes(meta.assignee)) {
+                solutioningStatus = "Being Finalised";
+            } else {
+                solutioningStatus = "Finalised";
+            }
+
+            // Validation-type requirements:
+            //  - UX       : required if the "UX UI Related" column = 1
+            //  - Data     : required if the "Data Related" column = 1
+            //  - Business : required for all User Stories, except [Tech] titles or the "NoValidation" tag
+            //  - Solution : required for all User Stories, except the "NoValidation" tag
+            const tags = tagsData[story.id] || [];
+            const hasTag = (t) => tags.some(tag => tag.toLowerCase() === t.toLowerCase());
+            const isTech = /\[Tech\]/i.test(story.title);
+            const noValidation = hasTag("NoValidation");
+
+            const uxExpected = (uxUiData[story.id] || 0) === 1;
+            const dataExpected = (dataRelData[story.id] || 0) === 1;
+            const businessExpected = !noValidation && !isTech;
+            const solutionExpected = !noValidation;
+
+            const uxStatus = !uxExpected ? "N/A" : (ado.ux === 1 ? "Completed" : "Pending");
+            const dataStatus = !dataExpected ? "N/A" : (ado.data === 1 ? "Completed" : "Pending");
+            const businessStatus = !businessExpected ? "N/A" : (ado.business === 1 ? "Completed" : "Pending");
+            const solutionStatus = !solutionExpected ? "N/A" : (ado.technical === 1 ? "Completed" : "Pending");
+
+            const missingValidations = [];
+            if (uxExpected && !uxStatus.includes("Completed")) missingValidations.push("UX");
+            if (dataExpected && !dataStatus.includes("Completed")) missingValidations.push("Data");
+            if (businessExpected && !businessStatus.includes("Completed")) missingValidations.push("Business");
+            if (solutionExpected && !solutionStatus.includes("Completed")) missingValidations.push("Solution");
+
+            const readiness = missingValidations.length === 0 ? "Ready" : "Not Ready";
+
+            const processedStory = {
+                id: story.id,
+                parent: story.parent || '',
+                parentName: story.parent ? (parentNames[story.parent] || story.parent) : '',
+                title: story.title,
+                // Enablers & Change Requests are recognised from EITHER the title marker
+                // or the ADO tag — some items carry only the tag (e.g. 1451753).
+                isEnabler: /\[Enabler\]/i.test(story.title) || hasTag("Enabler"),
+                isChangeRequest: /\[Change ?Request\]/i.test(story.title) || hasTag("ChangeRequest"),
+                workstreams: deriveWorkstreams(story.title),
+                storyPoints: storyPoints[story.id] || 0,
+                hasStoryPoints: (storyPoints[story.id] || 0) > 0,
+                tags: tags,
+                isEnablerTag: hasTag("Enabler"),
+                workItemType: "User Story",
+                iteration: "Release 5 / Sprint 21",
+                state: meta.state,
+                assignee: meta.assignee,
+                solutioningStatus,
+                uxExpected, uxStatus,
+                dataExpected, dataStatus,
+                businessExpected, businessStatus,
+                solutionExpected, solutionStatus,
+                missingValidations,
+                readiness
+            };
+
+            processedStories.push(processedStory);
+            allStoriesForFiltering.push(processedStory);
+        });
+
+        // Map internal solutioning status to display label + criticality emoji
+        const solutioningDisplay = (s) => {
+            if (s === "Finalised") return { label: "Finalised", emoji: "🟢", color: "#28a745" };
+            if (s === "Being Finalised") return { label: "Under Finalisation", emoji: "🟡", color: "#ffc107" };
+            if (s === "Being Worked On") return { label: "In Progress", emoji: '🟠', color: "#fd7e14" };
+            return { label: "Not Started", emoji: "⚪", color: "#6c757d" };
+        };
+
+        // Current workstream view: 'ALL' (OM + eB2B), 'OM', or 'eB2B'
+        let currentView = 'ALL';
+
+        function renderDashboard(view) {
+            currentView = view;
+            const viewStories = view === 'ALL'
+                ? processedStories
+                : processedStories.filter(s => s.workstreams.includes(view));
+
+        // Calculate KPIs
+        const totalStories = viewStories.length;
+
+        // Features exclude Enablers and Change Requests; readiness is measured against Features only
+        const featureStories = viewStories.filter(s => !s.isEnabler && !s.isChangeRequest);
+        const totalFeatures = featureStories.length;
+        const readyStories = featureStories.filter(s => s.readiness === "Ready").length;
+        const notReadyStories = totalFeatures - readyStories;
+        const readinessPercentage = totalFeatures > 0 ? ((readyStories / totalFeatures) * 100).toFixed(1) : "0.0";
+
+        const uxExpectedCount = viewStories.filter(s => s.uxExpected).length;
+        const uxCompletedCount = viewStories.filter(s => s.uxExpected && s.uxStatus.includes("Completed")).length;
+        const uxProgress = uxExpectedCount > 0 ? ((uxCompletedCount / uxExpectedCount) * 100).toFixed(1) : "N/A";
+
+        const dataExpectedCount = viewStories.filter(s => s.dataExpected).length;
+        const dataCompletedCount = viewStories.filter(s => s.dataExpected && s.dataStatus.includes("Completed")).length;
+        const dataProgress = dataExpectedCount > 0 ? ((dataCompletedCount / dataExpectedCount) * 100).toFixed(1) : "N/A";
+
+        const businessExpectedCount = viewStories.filter(s => s.businessExpected).length;
+        const businessCompletedCount = viewStories.filter(s => s.businessExpected && s.businessStatus.includes("Completed")).length;
+        const businessProgress = businessExpectedCount > 0 ? ((businessCompletedCount / businessExpectedCount) * 100).toFixed(1) : "N/A";
+
+        const solutionExpectedCount = viewStories.filter(s => s.solutionExpected).length;
+        const solutionCompletedCount = viewStories.filter(s => s.solutionExpected && s.solutionStatus.includes("Completed")).length;
+        const solutionProgress = solutionExpectedCount > 0 ? ((solutionCompletedCount / solutionExpectedCount) * 100).toFixed(1) : "N/A";
+
+        // Render Scope Composition (Features vs Change Requests vs Enablers)
+        const enablerCount = viewStories.filter(s => s.isEnabler).length;
+        const changeRequestCount = viewStories.filter(s => s.isChangeRequest && !s.isEnabler).length;
+        const featureCount = totalStories - enablerCount - changeRequestCount;
+
+        // Total story points planned for delivery in the current view
+        const totalStoryPoints = viewStories.reduce((sum, s) => sum + (s.storyPoints || 0), 0);
+
+        // Feature solutioning breakdown
+        const featureSolNotStarted = featureStories.filter(s => s.solutioningStatus === "Not Started").length;
+        const featureSolWorkedOn = featureStories.filter(s => s.solutioningStatus === "Being Worked On").length;
+        const featureSolFinalising = featureStories.filter(s => s.solutioningStatus === "Being Finalised").length;
+        const featureSolFinalised = featureStories.filter(s => s.solutioningStatus === "Finalised").length;
+
+        const featureBreakdown = [
+            { label: 'Solutioning finalised', count: featureSolFinalised, color: '#28a745', emoji: '🟢' },
+            { label: 'Solutioning being finalised', count: featureSolFinalising, color: '#ffc107', emoji: '🟡' },
+            { label: 'Solutioning in progress', count: featureSolWorkedOn, color: '#fd7e14', emoji: '🟠' },
+            { label: 'Solutioning not started', count: featureSolNotStarted, color: '#6c757d', emoji: '⚪' }
+        ];
+
+        const composition = [
+            { label: 'Features', count: featureCount, color: '#CC0000' },
+            { label: 'Enablers', count: enablerCount, color: '#17a2b8' },
+            { label: 'Change Requests', count: changeRequestCount, color: '#fd7e14' }
+        ];
+
+        const tilePct = (c) => totalStories > 0 ? ((c.count / totalStories) * 100).toFixed(0) : 0;
+        const feature = composition.find(c => c.label === 'Features');
+        const secondaryTiles = composition.filter(c => c.label !== 'Features');
+
+        let compHTML = '<div style="display:flex; gap:20px; flex-wrap:wrap; margin-bottom:25px; align-items:stretch;">';
+
+        // Features tile (left)
+        compHTML += '<div style="flex:1; min-width:200px; text-align:center; padding:20px; border-radius:8px; background:#f8f9fa; border-top:4px solid ' + feature.color + ';">';
+        compHTML += '<div style="font-size:2.6em; font-weight:700; color:' + feature.color + '; line-height:1;">' + feature.count + '</div>';
+        compHTML += '<div style="font-size:0.95em; color:#495057; font-weight:600; margin-top:8px;">' + feature.label + '</div>';
+        compHTML += '<div style="font-size:0.8em; color:#6c757d; margin-top:4px;">' + tilePct(feature) + '% of ' + totalStories + '</div>';
+        compHTML += '<div style="margin-top:16px; padding-top:14px; border-top:1px dashed #dee2e6; text-align:left;">';
+        featureBreakdown.forEach(b => {
+            compHTML += '<div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">';
+            compHTML += '<span style="flex-shrink:0; font-size:0.85em; line-height:1;">' + b.emoji + '</span>';
+            compHTML += '<span style="font-weight:700; color:' + b.color + '; min-width:20px;">' + b.count + '</span>';
+            compHTML += '<span style="font-size:0.8em; color:#495057;">' + b.label + '</span>';
+            compHTML += '</div>';
+        });
+        compHTML += '</div>';
+        compHTML += '</div>';
+
+        // Enablers + Change Requests stacked (right), total height matches Features tile
+        compHTML += '<div style="flex:1; min-width:160px; display:flex; flex-direction:column; gap:20px;">';
+        secondaryTiles.forEach(c => {
+            compHTML += '<div style="flex:1; text-align:center; padding:20px; border-radius:8px; background:#f8f9fa; border-top:4px solid ' + c.color + '; display:flex; flex-direction:column; justify-content:center;">';
+            compHTML += '<div style="font-size:2.6em; font-weight:700; color:' + c.color + '; line-height:1;">' + c.count + '</div>';
+            compHTML += '<div style="font-size:0.95em; color:#495057; font-weight:600; margin-top:8px;">' + c.label + '</div>';
+            compHTML += '<div style="font-size:0.8em; color:#6c757d; margin-top:4px;">' + tilePct(c) + '% of ' + totalStories + '</div>';
+            compHTML += '</div>';
+        });
+        compHTML += '</div>';
+
+        compHTML += '</div>';
+
+        // Stacked proportion bar
+        compHTML += '<div style="display:flex; height:30px; border-radius:15px; overflow:hidden; box-shadow:inset 0 0 3px rgba(0,0,0,0.2);">';
+        composition.forEach(c => {
+            if (c.count === 0) return;
+            const pct = (c.count / totalStories) * 100;
+            compHTML += '<div title="' + c.label + ': ' + c.count + '" style="width:' + pct + '%; background:' + c.color + '; display:flex; align-items:center; justify-content:center; color:white; font-weight:600; font-size:0.8em;">' + c.count + '</div>';
+        });
+        compHTML += '</div>';
+
+        // Story points planned for delivery
+        compHTML += '<div style="margin-top:18px; text-align:center; padding:12px; background:#f8f9fa; border-radius:8px;">';
+        compHTML += '<span style="font-size:1.8em; font-weight:700; color:var(--rc-red);">' + totalStoryPoints + '</span>';
+        compHTML += '<span style="font-size:0.9em; color:#495057; font-weight:600; margin-left:8px;">Story Points planned for delivery</span>';
+        compHTML += '</div>';
+
+        document.getElementById('scope-composition').innerHTML = compHTML;
+
+        // Render Readiness Chart (Simple Donut)
+        const readyPercent = parseFloat(readinessPercentage);
+        const notReadyPercent = 100 - readyPercent;
+        let chartHTML = '<svg class="donut-svg" viewBox="0 0 200 200">';
+        chartHTML += '<circle cx="100" cy="100" r="80" fill="none" stroke="#28a745" stroke-width="40" stroke-dasharray="' + (readyPercent * 5.03) + ' 503" transform="rotate(-90 100 100)"/>';
+        chartHTML += '<circle cx="100" cy="100" r="80" fill="none" stroke="#ffc107" stroke-width="40" stroke-dasharray="' + (notReadyPercent * 5.03) + ' 503" stroke-dashoffset="-' + (readyPercent * 5.03) + '" transform="rotate(-90 100 100)"/>';
+        chartHTML += '<text x="100" y="100" text-anchor="middle" dy="0.3em" font-size="32" font-weight="bold" fill="#2c3e50">' + readinessPercentage + '%</text>';
+        chartHTML += '</svg>';
+        chartHTML += '<div class="donut-legend">';
+        chartHTML += '<div class="legend-item"><div class="legend-color" style="background:#28a745"></div><span>Ready (' + readyStories + ')</span></div>';
+        chartHTML += '<div class="legend-item"><div class="legend-color" style="background:#ffc107"></div><span>Not Ready (' + notReadyStories + ')</span></div>';
+        chartHTML += '</div>';
+        document.getElementById('readiness-chart').innerHTML = chartHTML;
+
+        // Render Validation Progress Bars
+        let progressHTML = '';
+
+        const renderProgressBar = (label, completed, total, progress) => {
+            let html = '<div class="progress-bar-container" style="position:relative;">';
+            if (total === 0) {
+                html += '<div class="progress-bar-label"><span>' + label + '</span></div>';
+                html += '<div class="progress-bar" style="display:flex; align-items:center; justify-content:center;"><span style="color:#6c757d; font-size:0.85em; font-style:italic;">No validation expected</span></div>';
+                html += '</div>';
+                return html;
+            }
+            const percent = parseFloat(progress);
+            const isComplete = percent === 100;
+            const progressClass = isComplete ? 'complete' : (percent >= 70 ? '' : (percent >= 40 ? 'medium' : 'low'));
+            const displayLabel = isComplete ? label + ' 🎉' : label;
+            html += '<div class="progress-bar-label"><span>' + displayLabel + '</span><span>' + completed + '/' + total + ' (' + progress + '%)</span></div>';
+            const confettiAttr = isComplete ? ' data-confetti="1"' : '';
+            html += '<div class="progress-bar"' + confettiAttr + '><div class="progress-fill ' + progressClass + '" style="width:' + progress + '%">' + progress + '%</div></div>';
+            html += '</div>';
+            return html;
+        };
+
+        progressHTML += renderProgressBar('UX Validation', uxCompletedCount, uxExpectedCount, uxProgress);
+        progressHTML += renderProgressBar('Data Validation', dataCompletedCount, dataExpectedCount, dataProgress);
+        progressHTML += renderProgressBar('Business Validation', businessCompletedCount, businessExpectedCount, businessProgress);
+        progressHTML += renderProgressBar('Solution Validation', solutionCompletedCount, solutionExpectedCount, solutionProgress);
+
+        document.getElementById('validation-progress').innerHTML = progressHTML;
+
+        // Confetti burst on 100% bars
+        document.querySelectorAll('.progress-bar[data-confetti="1"]').forEach(bar => {
+            const canvas = document.createElement('canvas');
+            canvas.className = 'confetti-canvas';
+            const W = bar.offsetWidth || 500;
+            const H = 200;
+            canvas.width = W;
+            canvas.height = H;
+            // Attach canvas to the container (not the bar) so bar keeps overflow:hidden for rounding
+            const container = bar.parentElement;
+            canvas.style.top = (bar.offsetTop - H + bar.offsetHeight) + 'px';
+            container.appendChild(canvas);
+            const ctx = canvas.getContext('2d');
+            const COLORS = ['#e63946','#f4a261','#2a9d8f','#457b9d','#f1c40f','#c77dff','#ff6b6b','#06d6a0','#ff9f1c','#cbf3f0'];
+            // Burst from multiple origin points along the bar
+            const origins = [0.2, 0.5, 0.8].map(f => f * W);
+            const particles = [];
+            origins.forEach(ox => {
+                for (let i = 0; i < 50; i++) {
+                    const angle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.1;
+                    const speed = Math.random() * 7 + 3;
+                    particles.push({
+                        x: ox + (Math.random() - 0.5) * 30,
+                        y: H,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        gravity: 0.15 + Math.random() * 0.1,
+                        size: Math.random() * 7 + 3,
+                        color: COLORS[Math.floor(Math.random() * COLORS.length)],
+                        rot: Math.random() * Math.PI * 2,
+                        vrot: (Math.random() - 0.5) * 0.25,
+                        alpha: 1,
+                        shape: Math.random() < 0.5 ? 'rect' : 'circle'
+                    });
+                }
+            });
+            const TOTAL_FRAMES = 300;
+            let frame = 0;
+            const animate = () => {
+                ctx.clearRect(0, 0, W, H);
+                particles.forEach(p => {
+                    p.vy += p.gravity;
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.rot += p.vrot;
+                    // Fade in last third of animation
+                    if (frame > TOTAL_FRAMES * 0.67) {
+                        p.alpha -= 1 / (TOTAL_FRAMES * 0.33);
+                    }
+                    if (p.alpha <= 0 || p.y > H) return;
+                    ctx.save();
+                    ctx.globalAlpha = Math.max(0, p.alpha);
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(p.rot);
+                    ctx.fillStyle = p.color;
+                    if (p.shape === 'circle') {
+                        ctx.beginPath();
+                        ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+                        ctx.fill();
+                    } else {
+                        ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
+                    }
+                    ctx.restore();
+                });
+                frame++;
+                if (frame < TOTAL_FRAMES) requestAnimationFrame(animate);
+                else ctx.clearRect(0, 0, W, H);
+            };
+            requestAnimationFrame(animate);
+        });
+
+        // Render Heatmap
+        const getStatusClass = (status) => {
+            if (status.includes("Completed")) return "status-completed";
+            if (status === "Pending") return "status-pending";
+            if (status.includes("Offline")) return "status-offline";
+            return "status-na";
+        };
+
+        const getNBA = (story) => {
+            // Not yet Finalised → assignee is always the NBA, regardless of validation flags
+            if (story.solutioningStatus !== 'Finalised') {
+                const name = story.assignee || 'Unassigned';
+                return { text: name, style: 'color:#1a1a1a;' };
+            }
+            // Finalised: no validation expected at all → nothing to do
+            if (!story.uxExpected && !story.dataExpected && !story.businessExpected && !story.solutionExpected) {
+                return { text: 'None', style: 'color:#bbb;' };
+            }
+            // Finalised → validators are the NBA; check if anything is still pending
+            const pending = [];
+            if (story.uxExpected && !story.uxStatus.includes('Completed')) pending.push('UX');
+            if (story.dataExpected && !story.dataStatus.includes('Completed')) pending.push('Data');
+            if (story.businessExpected && !story.businessStatus.includes('Completed')) pending.push('Business');
+            if (story.solutionExpected && !story.solutionStatus.includes('Completed')) pending.push('Solution');
+            if (pending.length === 0) {
+                return { text: 'None', style: 'color:#bbb;' };
+            }
+            return { text: 'Validator(s)', style: 'color:#1a1a1a;' };
+        };
+
+        let heatmapHTML = '<thead><tr>';
+        heatmapHTML += '<th class="sortable" onclick="sortHeatmap(0)">Story ID</th>';
+        heatmapHTML += '<th class="sortable" onclick="sortHeatmap(1)">Parent</th>';
+        heatmapHTML += '<th class="sortable" onclick="sortHeatmap(2)">Title</th>';
+        heatmapHTML += '<th class="sortable" onclick="sortHeatmap(3)">Solutioning Status</th>';
+        heatmapHTML += '<th class="sortable" onclick="sortHeatmap(4)">NBA Owner</th>';
+        heatmapHTML += '<th class="sortable" onclick="sortHeatmap(5)">UX</th>';
+        heatmapHTML += '<th class="sortable" onclick="sortHeatmap(6)">Data</th>';
+        heatmapHTML += '<th class="sortable" onclick="sortHeatmap(7)">Business</th>';
+        heatmapHTML += '<th class="sortable" onclick="sortHeatmap(8)">Solution</th>';
+        heatmapHTML += '<th class="sortable" onclick="sortHeatmap(9)">Overall</th>';
+        heatmapHTML += '</tr></thead><tbody id="heatmap-tbody">';
+
+        viewStories.filter(story => !story.isEnabler && !story.isChangeRequest).forEach(story => {
+            const adoUrl = 'https://dev.azure.com/MarsDevTeam/EOS/_workitems/edit/' + story.id;
+            const nba = getNBA(story);
+            const isBE = story.tags.some(t => t.toLowerCase() === 'besteffort');
+            heatmapHTML += '<tr' + (isBE ? ' class="best-effort-row"' : '') + '>';
+            heatmapHTML += '<td class="story-id"><a href="' + adoUrl + '" target="_blank">' + story.id + '</a></td>';
+            if (story.parent && story.parentName) {
+                const parentUrl = 'https://dev.azure.com/MarsDevTeam/EOS/_workitems/edit/' + story.parent;
+                heatmapHTML += '<td class="story-parent"><a href="' + parentUrl + '" target="_blank" style="color:var(--rc-gray); text-decoration:none;" title="Parent ID: ' + story.parent + '">' + story.parentName + '</a></td>';
+            } else {
+                heatmapHTML += '<td class="story-parent" style="color:#999;">-</td>';
+            }
+            heatmapHTML += '<td class="story-title">' + story.title + (isBE ? ' <span class="tag-best-effort">💎 Best Effort</span>' : '') + '</td>';
+            const sol = solutioningDisplay(story.solutioningStatus);
+            heatmapHTML += '<td><span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;background:' + sol.color + '18;border:1px solid ' + sol.color + '55;font-size:0.8em;white-space:nowrap;">' + sol.emoji + ' <span style="color:' + sol.color + ';font-weight:600;">' + sol.label + '</span></span></td>';
+            heatmapHTML += '<td style="' + nba.style + '">' + nba.text + '</td>';
+            heatmapHTML += '<td class="' + getStatusClass(story.uxStatus) + '">' + story.uxStatus + '</td>';
+            heatmapHTML += '<td class="' + getStatusClass(story.dataStatus) + '">' + story.dataStatus + '</td>';
+            heatmapHTML += '<td class="' + getStatusClass(story.businessStatus) + '">' + story.businessStatus + '</td>';
+            heatmapHTML += '<td class="' + getStatusClass(story.solutionStatus) + '">' + story.solutionStatus + '</td>';
+            heatmapHTML += '<td><span class="readiness-' + (story.readiness === 'Ready' ? 'ready' : 'not-ready') + '">' + story.readiness + '</span></td>';
+            heatmapHTML += '</tr>';
+        });
+
+        heatmapHTML += '</tbody>';
+        document.getElementById('heatmap-table').innerHTML = heatmapHTML;
+
+        // Render Detailed Table
+        let detailedHTML = '<thead><tr>';
+        detailedHTML += '<th class="sortable" onclick="sortTable(0)">Story ID</th>';
+        detailedHTML += '<th class="sortable" onclick="sortTable(1)">Parent</th>';
+        detailedHTML += '<th class="sortable" onclick="sortTable(2)">Title</th>';
+        detailedHTML += '<th class="sortable" onclick="sortTable(3)">UX Status</th>';
+        detailedHTML += '<th class="sortable" onclick="sortTable(4)">Data Status</th>';
+        detailedHTML += '<th class="sortable" onclick="sortTable(5)">Business Status</th>';
+        detailedHTML += '<th class="sortable" onclick="sortTable(6)">Solution Status</th>';
+        detailedHTML += '<th class="sortable" onclick="sortTable(7)">Overall Status</th>';
+        detailedHTML += '</tr></thead><tbody id="detailed-tbody">';
+
+        viewStories.forEach(story => {
+            const adoUrl = 'https://dev.azure.com/MarsDevTeam/EOS/_workitems/edit/' + story.id;
+            const parentUrl = story.parent ? 'https://dev.azure.com/MarsDevTeam/EOS/_workitems/edit/' + story.parent : '';
+            detailedHTML += '<tr>';
+            detailedHTML += '<td class="story-id"><a href="' + adoUrl + '" target="_blank">' + story.id + '</a></td>';
+            if (story.parent && story.parentName) {
+                detailedHTML += '<td><a href="' + parentUrl + '" target="_blank" style="color: var(--rc-gray); text-decoration: none;" title="Parent ID: ' + story.parent + '">' + story.parentName + '</a></td>';
+            } else {
+                detailedHTML += '<td style="color: #999;">-</td>';
+            }
+            detailedHTML += '<td>' + story.title + '</td>';
+            detailedHTML += '<td class="' + getStatusClass(story.uxStatus) + '">' + story.uxStatus + '</td>';
+            detailedHTML += '<td class="' + getStatusClass(story.dataStatus) + '">' + story.dataStatus + '</td>';
+            detailedHTML += '<td class="' + getStatusClass(story.businessStatus) + '">' + story.businessStatus + '</td>';
+            detailedHTML += '<td class="' + getStatusClass(story.solutionStatus) + '">' + story.solutionStatus + '</td>';
+            detailedHTML += '<td><span class="readiness-' + (story.readiness === 'Ready' ? 'ready' : 'not-ready') + '">' + (story.readiness === 'Ready' ? '🎉 Ready' : 'Not Ready') + '</span></td>';
+            detailedHTML += '</tr>';
+        });
+
+        detailedHTML += '</tbody>';
+        document.getElementById('detailed-table').innerHTML = detailedHTML;
+
+        // Render Enablers Table
+        const enablerStories = viewStories.filter(story => story.isEnabler);
+        let enablersHTML = '<thead><tr>';
+        enablersHTML += '<th>Story ID</th><th>Parent</th><th>Title</th>';
+        enablersHTML += '</tr></thead><tbody>';
+
+        if (enablerStories.length === 0) {
+            enablersHTML += '<tr><td colspan="3" style="text-align:center; color:#999;">No enablers in this sprint.</td></tr>';
+        } else {
+            enablerStories.forEach(story => {
+                const adoUrl = 'https://dev.azure.com/MarsDevTeam/EOS/_workitems/edit/' + story.id;
+                const parentUrl = story.parent ? 'https://dev.azure.com/MarsDevTeam/EOS/_workitems/edit/' + story.parent : '';
+                const isBE = story.tags.some(t => t.toLowerCase() === 'besteffort');
+                enablersHTML += '<tr' + (isBE ? ' class="best-effort-row"' : '') + '>';
+                enablersHTML += '<td class="story-id"><a href="' + adoUrl + '" target="_blank">' + story.id + '</a></td>';
+                if (story.parent && story.parentName) {
+                    enablersHTML += '<td><a href="' + parentUrl + '" target="_blank" style="color: var(--rc-gray); text-decoration: none;" title="Parent ID: ' + story.parent + '">' + story.parentName + '</a></td>';
+                } else {
+                    enablersHTML += '<td style="color: #999;">-</td>';
+                }
+                enablersHTML += '<td class="story-title">' + story.title + (isBE ? ' <span class="tag-best-effort">💎 Best Effort</span>' : '') + '</td>';
+                enablersHTML += '</tr>';
+            });
+        }
+
+        enablersHTML += '</tbody>';
+        document.getElementById('enablers-table').innerHTML = enablersHTML;
+
+        // Render Change Requests Table
+        const changeRequestStories = viewStories.filter(story => story.isChangeRequest);
+        let crHTML = '<thead><tr>';
+        crHTML += '<th>Story ID</th><th>Parent</th><th>Title</th><th>Solutioning Status</th><th>NBA Owner</th><th>UX</th><th>Data</th><th>Business</th><th>Solution</th><th>Overall</th>';
+        crHTML += '</tr></thead><tbody>';
+
+        if (changeRequestStories.length === 0) {
+            crHTML += '<tr><td colspan="10" style="text-align:center; color:#999;">No change requests in this sprint.</td></tr>';
+        } else {
+            changeRequestStories.forEach(story => {
+                const adoUrl = 'https://dev.azure.com/MarsDevTeam/EOS/_workitems/edit/' + story.id;
+                const parentUrl = story.parent ? 'https://dev.azure.com/MarsDevTeam/EOS/_workitems/edit/' + story.parent : '';
+                const isBE = story.tags.some(t => t.toLowerCase() === 'besteffort');
+                crHTML += '<tr' + (isBE ? ' class="best-effort-row"' : '') + '>';
+                crHTML += '<td class="story-id"><a href="' + adoUrl + '" target="_blank">' + story.id + '</a></td>';
+                if (story.parent && story.parentName) {
+                    crHTML += '<td class="story-parent"><a href="' + parentUrl + '" target="_blank" style="color: var(--rc-gray); text-decoration: none;" title="Parent ID: ' + story.parent + '">' + story.parentName + '</a></td>';
+                } else {
+                    crHTML += '<td style="color: #999;">-</td>';
+                }
+                crHTML += '<td class="story-title">' + story.title + (isBE ? ' <span class="tag-best-effort">💎 Best Effort</span>' : '') + '</td>';
+                const crSol = solutioningDisplay(story.solutioningStatus);
+                crHTML += '<td><span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;background:' + crSol.color + '18;border:1px solid ' + crSol.color + '55;font-size:0.8em;white-space:nowrap;">' + crSol.emoji + ' <span style="color:' + crSol.color + ';font-weight:600;">' + crSol.label + '</span></span></td>';
+                const crNba = getNBA(story);
+                crHTML += '<td style="' + crNba.style + '">' + crNba.text + '</td>';
+                crHTML += '<td class="' + getStatusClass(story.uxStatus) + '">' + story.uxStatus + '</td>';
+                crHTML += '<td class="' + getStatusClass(story.dataStatus) + '">' + story.dataStatus + '</td>';
+                crHTML += '<td class="' + getStatusClass(story.businessStatus) + '">' + story.businessStatus + '</td>';
+                crHTML += '<td class="' + getStatusClass(story.solutionStatus) + '">' + story.solutionStatus + '</td>';
+                crHTML += '<td><span class="readiness-' + (story.readiness === 'Ready' ? 'ready' : 'not-ready') + '">' + (story.readiness === 'Ready' ? 'Ready' : 'Not Ready') + '</span></td>';
+                crHTML += '</tr>';
+            });
+        }
+
+        crHTML += '</tbody>';
+        document.getElementById('change-requests-table').innerHTML = crHTML;
+
+        // Render Sprint Health Checks
+        // % of Items without Story Points — all work items
+        const spScope = viewStories;
+        const spMissing = spScope.filter(s => !s.hasStoryPoints);
+        const spPct = spScope.length > 0 ? ((spMissing.length / spScope.length) * 100).toFixed(1) : "0.0";
+
+        // % of Items without a Parent — include all work items
+        const parentScope = viewStories;
+        const parentMissing = parentScope.filter(s => !s.parent);
+        const parentPct = parentScope.length > 0 ? ((parentMissing.length / parentScope.length) * 100).toFixed(1) : "0.0";
+
+        // Items marked "Ready" overall but still in an early Work Item Step (New,
+        // Qualified, In Design, Design Review) — surfaces stories whose readiness
+        // is out of step with their ADO State. Items that are "Ready" only because
+        // no validation was ever required are excluded: at least one validation
+        // must have been expected (and therefore completed) to count as a genuine
+        // contradiction.
+        const earlySteps = ["New", "Qualified", "In Design", "Design Review"];
+        const readyScope = viewStories;
+        const readyEarlyStep = readyScope.filter(s =>
+            s.readiness === "Ready" &&
+            earlySteps.includes(s.state) &&
+            (s.uxExpected || s.dataExpected || s.businessExpected || s.solutionExpected));
+        const readyEarlyPct = readyScope.length > 0 ? ((readyEarlyStep.length / readyScope.length) * 100).toFixed(1) : "0.0";
+
+        const healthClass = (pct) => { const p = parseFloat(pct); return p === 0 ? 'excellent' : p <= 20 ? 'warning' : 'danger'; };
+
+        let healthHTML = '';
+        healthHTML += '<div class="kpi-card health-tile ' + healthClass(spPct) + '" id="health-tile-sp" onclick="toggleHealthDrill(\'sp\')">';
+        healthHTML += '<div class="kpi-label">Items without Story Points</div>';
+        healthHTML += '<div class="kpi-value">' + spPct + '%</div>';
+        healthHTML += '<div class="kpi-subtitle">' + spMissing.length + ' of ' + spScope.length + ' items &nbsp;·&nbsp; <span class="drill-hint">click to view ▸</span></div>';
+        healthHTML += '</div>';
+
+        healthHTML += '<div class="kpi-card health-tile ' + healthClass(parentPct) + '" id="health-tile-parent" onclick="toggleHealthDrill(\'parent\')">';
+        healthHTML += '<div class="kpi-label">Items without a Parent</div>';
+        healthHTML += '<div class="kpi-value">' + parentPct + '%</div>';
+        healthHTML += '<div class="kpi-subtitle">' + parentMissing.length + ' of ' + parentScope.length + ' items &nbsp;·&nbsp; <span class="drill-hint">click to view ▸</span></div>';
+        healthHTML += '</div>';
+
+        healthHTML += '<div class="kpi-card health-tile ' + healthClass(readyEarlyPct) + '" id="health-tile-readyearly" onclick="toggleHealthDrill(\'readyearly\')">';
+        healthHTML += '<div class="kpi-label">Ready but in an Early Step</div>';
+        healthHTML += '<div class="kpi-value">' + readyEarlyStep.length + '</div>';
+        healthHTML += '<div class="kpi-subtitle">' + readyEarlyStep.length + ' of ' + readyScope.length + ' items in New / Qualified / In Design / Design Review &nbsp;·&nbsp; <span class="drill-hint">click to view ▸</span></div>';
+        healthHTML += '</div>';
+
+        document.getElementById('health-kpi-grid').innerHTML = healthHTML;
+
+        // Stash the matching item sets for the drill-down
+        healthDrillData = {
+            sp: { title: 'Items without Story Points', items: spMissing },
+            parent: { title: 'Items without a Parent', items: parentMissing },
+            readyearly: { title: 'Ready but in an Early Work Item Step', items: readyEarlyStep, showState: true }
+        };
+        // Re-render an open drill-down so it stays in sync with the current view
+        if (activeHealthDrill) renderHealthDrill(activeHealthDrill);
+
+        // Apply default sort by Parent
+        applyDefaultSort();
+        } // end renderDashboard
+
+        // ---- Sprint Health Checks drill-down ----
+        let healthDrillData = { sp: {title:'', items:[]}, parent: {title:'', items:[]} };
+        let activeHealthDrill = null;
+
+        function renderHealthDrill(key) {
+            const data = healthDrillData[key];
+            const container = document.getElementById('health-drilldown');
+            document.getElementById('health-tile-sp').classList.toggle('selected', key === 'sp');
+            document.getElementById('health-tile-parent').classList.toggle('selected', key === 'parent');
+            document.getElementById('health-tile-readyearly').classList.toggle('selected', key === 'readyearly');
+
+            const showState = !!data.showState;
+            const colCount = showState ? 4 : 3;
+            let html = '<div class="health-drill">';
+            html += '<h3>' + data.title + ' <span style="color:var(--rc-muted); font-weight:400;">(' + data.items.length + ')</span></h3>';
+            html += '<div style="overflow-x:auto;"><table><thead><tr>';
+            html += '<th>Story ID</th><th>Title</th>' + (showState ? '<th>Work Item Step</th>' : '') + '<th>Solutioning Status</th>';
+            html += '</tr></thead><tbody>';
+            if (data.items.length === 0) {
+                html += '<tr><td colspan="' + colCount + '" style="text-align:center; color:#999;">No items — this check passes for the current view. 🎉</td></tr>';
+            } else {
+                data.items.forEach(s => {
+                    const adoUrl = 'https://dev.azure.com/MarsDevTeam/EOS/_workitems/edit/' + s.id;
+                    const sol = solutioningDisplay(s.solutioningStatus);
+                    html += '<tr>';
+                    html += '<td class="story-id"><a href="' + adoUrl + '" target="_blank">' + s.id + '</a></td>';
+                    html += '<td class="story-title">' + s.title + '</td>';
+                    if (showState) html += '<td style="color:#1a1a1a;">' + (s.state || '-') + '</td>';
+                    html += '<td style="color:#1a1a1a;">' + sol.emoji + ' ' + sol.label + '</td>';
+                    html += '</tr>';
+                });
+            }
+            html += '</tbody></table></div></div>';
+            container.innerHTML = html;
+        }
+
+        function toggleHealthDrill(key) {
+            if (activeHealthDrill === key) {
+                activeHealthDrill = null;
+                document.getElementById('health-drilldown').innerHTML = '';
+                document.getElementById('health-tile-sp').classList.remove('selected');
+                document.getElementById('health-tile-parent').classList.remove('selected');
+                document.getElementById('health-tile-readyearly').classList.remove('selected');
+            } else {
+                activeHealthDrill = key;
+                renderHealthDrill(key);
+            }
+        }
+
+        // Workstream view switcher
+        function switchView(view) {
+            document.querySelectorAll('.view-button').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById('view-' + view);
+            if (activeBtn) activeBtn.classList.add('active');
+            renderDashboard(view);
+        }
+
+        // Initial render (default: OM + eB2B)
+        renderDashboard('ALL');
+
+        // Filter functionality
+        function filterTable() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const statusFilter = document.getElementById('status-filter').value;
+            const tbody = document.getElementById('detailed-tbody');
+            const rows = tbody.getElementsByTagName('tr');
+
+            for (let row of rows) {
+                const id = row.cells[0].textContent.toLowerCase();
+                const title = row.cells[2].textContent.toLowerCase();
+                const status = row.cells[7].textContent;
+
+                const matchesSearch = id.includes(searchTerm) || title.includes(searchTerm);
+                const matchesStatus = !statusFilter || status.includes(statusFilter);
+
+                row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
+            }
+        }
+
+        document.getElementById('search-input').addEventListener('input', filterTable);
+        document.getElementById('status-filter').addEventListener('change', filterTable);
+
+        function resetFilters() {
+            document.getElementById('search-input').value = '';
+            document.getElementById('status-filter').value = '';
+            filterTable();
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tab).classList.add('active');
+        }
+
+        function toggleLegend() {
+            const panel = document.getElementById('legend-panel');
+            const toggle = document.getElementById('legend-toggle');
+            const expanded = panel.classList.toggle('expanded');
+            toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        }
+
+        // Table sorting functionality
+        let sortDirection = {};
+        let currentSortColumn = 1; // Default sort by Parent (column index 1)
+
+        function sortTable(columnIndex) {
+            const table = document.getElementById('detailed-table');
+            const tbody = document.getElementById('detailed-tbody');
+            const rows = Array.from(tbody.getElementsByTagName('tr'));
+
+            // Toggle sort direction
+            if (currentSortColumn !== columnIndex) {
+                // New column selected, default to ascending
+                sortDirection[columnIndex] = 'asc';
+            } else {
+                // Same column, toggle direction
+                sortDirection[columnIndex] = sortDirection[columnIndex] === 'asc' ? 'desc' : 'asc';
+            }
+
+            currentSortColumn = columnIndex;
+            const direction = sortDirection[columnIndex];
+
+            // Sort rows
+            rows.sort((a, b) => {
+                let cellA = a.cells[columnIndex].textContent.trim();
+                let cellB = b.cells[columnIndex].textContent.trim();
+
+                // Handle empty cells (like "-" for missing parent)
+                if (cellA === '-') cellA = '';
+                if (cellB === '-') cellB = '';
+
+                // For Story ID column, sort numerically
+                if (columnIndex === 0) {
+                    const numA = parseInt(cellA) || 0;
+                    const numB = parseInt(cellB) || 0;
+                    return direction === 'asc' ? numA - numB : numB - numA;
+                }
+
+                // For other columns, sort alphabetically
+                if (direction === 'asc') {
+                    return cellA.localeCompare(cellB);
+                } else {
+                    return cellB.localeCompare(cellA);
+                }
+            });
+
+            // Clear tbody and append sorted rows
+            tbody.innerHTML = '';
+            rows.forEach(row => tbody.appendChild(row));
+
+            // Update sort indicators
+            const headers = table.querySelectorAll('th.sortable');
+            headers.forEach((header) => {
+                header.classList.remove('sort-asc', 'sort-desc');
+            });
+
+            const activeHeader = headers[columnIndex];
+            if (activeHeader) {
+                activeHeader.classList.add(direction === 'asc' ? 'sort-asc' : 'sort-desc');
+            }
+        }
+
+        // Heatmap table sorting (independent of the detailed table)
+        let heatmapSortDirection = {};
+        let heatmapSortColumn = null;
+
+        function sortHeatmap(columnIndex) {
+            const table = document.getElementById('heatmap-table');
+            const tbody = document.getElementById('heatmap-tbody');
+            if (!tbody) return;
+            const rows = Array.from(tbody.getElementsByTagName('tr'));
+
+            if (heatmapSortColumn !== columnIndex) {
+                heatmapSortDirection[columnIndex] = 'asc';
+            } else {
+                heatmapSortDirection[columnIndex] = heatmapSortDirection[columnIndex] === 'asc' ? 'desc' : 'asc';
+            }
+            heatmapSortColumn = columnIndex;
+            const direction = heatmapSortDirection[columnIndex];
+
+            // Solutioning Status (col 2) sorts by maturity: In Progress < Under Finalisation < Finalised
+            // Rank by the text label, ignoring the leading emoji.
+            const solRankOf = (text) => {
+                const t = text.toLowerCase();
+                if (t.includes('not started')) return 0;
+                if (t.includes('in progress')) return 1;
+                if (t.includes('under finalisation')) return 2;
+                if (t.includes('finalised')) return 3;
+                return 99;
+            };
+
+            rows.sort((a, b) => {
+                let cellA = a.cells[columnIndex].textContent.trim();
+                let cellB = b.cells[columnIndex].textContent.trim();
+
+                if (columnIndex === 0) {
+                    const numA = parseInt(cellA) || 0;
+                    const numB = parseInt(cellB) || 0;
+                    return direction === 'asc' ? numA - numB : numB - numA;
+                }
+                if (columnIndex === 2) {
+                    const rA = solRankOf(cellA);
+                    const rB = solRankOf(cellB);
+                    return direction === 'asc' ? rA - rB : rB - rA;
+                }
+                return direction === 'asc' ? cellA.localeCompare(cellB) : cellB.localeCompare(cellA);
+            });
+
+            tbody.innerHTML = '';
+            rows.forEach(row => tbody.appendChild(row));
+
+            table.querySelectorAll('th.sortable').forEach(h => h.classList.remove('sort-asc', 'sort-desc'));
+            const activeHeader = table.querySelectorAll('th.sortable')[columnIndex];
+            if (activeHeader) activeHeader.classList.add(direction === 'asc' ? 'sort-asc' : 'sort-desc');
+        }
+
+        // Apply default sort by Parent when page loads
+        function applyDefaultSort() {
+            // Wait a bit for table to be rendered
+            setTimeout(() => {
+                sortDirection[1] = 'desc'; // Set to desc so first call toggles to asc
+                sortTable(1); // Sort by Parent column (index 1)
+            }, 100);
+        }
+
+        console.log("Dashboard loaded successfully!");
+        console.log("Total stories (all workstreams, inc. new items):", processedStories.length);
+        console.log("Current view:", currentView);
+    </script>
+
+    <div class="footer">
+        <div class="footer-left">
+            <h4>🎯 Sprint 23 Validation Readiness Dashboard</h4>
+            <p>Royal Canin | Release 6 - Sprint 23</p>
+            <p>Order Management Workstream | EOS Omni-L2C</p>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 Salesforce | Powered by ☁️ Salesforce Professional Services</p>
+        </div>
+    </div>
+</body>
+</html>
