@@ -838,11 +838,11 @@
                 </div>
                 <div class="legend-item-row">
                     <span class="legend-status">🟡 Under Finalisation</span>
-                    <span class="legend-desc">The Salesforce team is finalising the User Story after design. If validation is required, reviewers may already start providing feedback, understanding that minor updates or clarifications may still be introduced.<br><em style="color:#6c757d;">🔍 In ADO: State = <strong>Design Completed</strong>.</em></span>
+                    <span class="legend-desc">The Salesforce team is finalising the User Story after design. If validation is required, reviewers may already start providing feedback, understanding that minor updates or clarifications may still be introduced.<br><em style="color:#6c757d;">🔍 In ADO: State = <strong>Design Completed</strong> and assigned to a team member.</em></span>
                 </div>
                 <div class="legend-item-row">
                     <span class="legend-status">🟢 Finalised</span>
-                    <span class="legend-desc">The Salesforce team has completed the User Story. If validation is required, the item is ready for stakeholder review and approval.<br><em style="color:#6c757d;">🔍 In ADO: any state beyond Design Completed (e.g. Ready to build, In Build, Ready for QA…).</em></span>
+                    <span class="legend-desc">The Salesforce team has completed the User Story. If validation is required, the item is ready for stakeholder review and approval.<br><em style="color:#6c757d;">🔍 In ADO: State = <strong>Design Completed</strong> and unassigned — or any state beyond Design Completed (e.g. Ready to build, In Build, Ready for QA…).</em></span>
                 </div>
                 <div class="legend-item-row">
                     <span class="legend-status"><span class="tag-best-effort">💎 Best Effort</span></span>
@@ -1049,17 +1049,17 @@
             const ado = adoData[story.id] || {technical:0,ux:0,data:0,business:0};
             const meta = metaData[story.id] || {state:"", assignee:""};
 
-            // Solutioning status derived from ADO State:
+            // Solutioning status derived from ADO State + Assignee:
             //  - State New                                        -> Not Started
             //  - State In Design                                  -> Being Worked On
-            //  - State Design Completed                           -> Being Finalised
-            //  - Any state beyond Design Completed                -> Finalised
+            //  - State Design Completed + assigned                -> Being Finalised
+            //  - State Design Completed unassigned, or any state beyond -> Finalised
             let solutioningStatus;
             if (meta.state === "New") {
                 solutioningStatus = "Not Started";
             } else if (meta.state === "In Design") {
                 solutioningStatus = "Being Worked On";
-            } else if (meta.state === "Design Completed") {
+            } else if (meta.state === "Design Completed" && meta.assignee) {
                 solutioningStatus = "Being Finalised";
             } else {
                 solutioningStatus = "Finalised";
